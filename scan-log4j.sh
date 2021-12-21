@@ -45,11 +45,12 @@ scan_files() {
 
 for id in $(docker ps --format "{{.ID}}"); do
     pid=$(docker inspect $id -f '{{.State.Pid}}')
+    namespace=$(docker inspect $id -f '{{ index .Config.Labels "io.kubernetes.pod.namespace"}}')
     pod=$(docker inspect $id -f '{{ index .Config.Labels "io.kubernetes.pod.name"}}')
     container=$(docker inspect $id -f '{{ index .Config.Labels "io.kubernetes.container.name"}}')
     found=`(cd /proc/$pid/root; scan_files)`
     if test -n "$found"; then
-        echo $container $pod $(hostname -f)
+        echo $container $pod $namespace $(hostname -f)
         echo "$found" | sed 's/^/  /'
     fi
 done
