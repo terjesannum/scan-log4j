@@ -24,6 +24,7 @@ scan_files() {
                 check_class $file || echo $file
                 ;;
             *)
+                rm -rf $TMPDIR
                 mkdir $TMPDIR
                 if type unzip &>/dev/null; then
                     unzip -d $TMPDIR $file \*JndiManager.class \*JmsAppender.class &>/dev/null
