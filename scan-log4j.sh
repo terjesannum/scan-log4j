@@ -4,21 +4,15 @@ TMPDIR=/tmp/scan-log4j
 SCRIPT=$(readlink -f "$0")
 SCRIPT_PATH=$(dirname "$SCRIPT")
 
-# 2.17.0 checksums
-MD5_JMS_APPENDER=5c293f31b93620ffbc2a709577a3f3cd
-MD5_JNDI_MANAGER=3dc5cf97546007be53b2f3d44028fa58
+# ignore 2.17.0, 2.16.0
+MD5='^(3dc5cf97546007be53b2f3d44028fa58|ba1cf8f81e7b31c709768561ba8ab558)$'
 
 check_class() {
-    if echo $1 | grep -q Jms; then
-        MD5=$MD5_JMS_APPENDER
-    else
-        MD5=$MD5_JNDI_MANAGER
-    fi
-    test "$MD5" == "$(md5sum $1 | cut -f1 -d\ )"
+    md5sum $1 | cut -f1 -d\  | grep -qE $MD5
 }
 
 scan_files() {
-    for file in $(find . -not \( -path ./proc -prune \) -type f -name \*.jar -o -name \*.zip -o -name JmsAppender.class -o -name JndiManager.class); do
+    for file in $(find . -not \( -path ./proc -prune \) -type f -name \*.jar -o -name \*.zip -o -name JndiManager.class); do
         case $file in
             *.class)
                 check_class $file || echo $file
@@ -27,7 +21,7 @@ scan_files() {
                 rm -rf $TMPDIR
                 mkdir $TMPDIR
                 if type unzip &>/dev/null; then
-                    unzip -d $TMPDIR $file \*JndiManager.class \*JmsAppender.class &>/dev/null
+                    unzip -d $TMPDIR $file \*JndiManager.class &>/dev/null
                 else
                     python $SCRIPT_PATH/unzip.py $file $TMPDIR
                 fi
